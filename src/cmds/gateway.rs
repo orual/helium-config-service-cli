@@ -1,7 +1,7 @@
 use super::{GetHotspot, PathBufKeypair};
 use crate::{client, region::Region, Msg, PrettyJson, Result};
 use angry_purple_tiger::AnimalName;
-use helium_crypto::PublicKey;
+use helium_crypto::public_key::PublicKey;
 use helium_proto::services::iot_config::{
     GatewayInfo as GatewayInfoProto, GatewayLocationResV1, GatewayMetadata as GatewayMetadataProto,
 };
@@ -55,7 +55,7 @@ impl Location {
     ) -> Result<Location, h3o::error::InvalidCellIndex> {
         let hex = res.location;
         let latlng: h3o::LatLng = h3o::CellIndex::from_str(&hex)?.into();
-        let name: AnimalName = pubkey.clone().into();
+        let name: AnimalName = AnimalName::from_str(&pubkey.to_string()).unwrap();
         Ok(Self {
             name: name.to_string(),
             pubkey,
@@ -89,7 +89,7 @@ impl TryFrom<GatewayInfoProto> for GatewayInfo {
 
     fn try_from(info: GatewayInfoProto) -> Result<Self, Self::Error> {
         let pubkey = PublicKey::try_from(info.address)?;
-        let name: AnimalName = pubkey.clone().into();
+        let name: AnimalName = AnimalName::from_str(&pubkey.to_string()).unwrap();
         let metadata = if let Some(md) = info.metadata {
             Some(md.try_into()?)
         } else {
